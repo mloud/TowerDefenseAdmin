@@ -1,25 +1,50 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useState } from 'react';
+import { remoteConfig } from './firebase';
 
-function App() {
+const App = () => {
+  const [configData, setConfigData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Funkce pro načtení dat z Remote Config
+    const fetchConfig = async () => {
+      try {
+        // Fetch and activate the latest config
+        await remoteConfig.fetchAndActivate();
+        
+        // Get the specific key from Remote Config
+        const stageName = remoteConfig.getString('stageName');
+        const rewardValue = remoteConfig.getString('rewardValue');
+        
+        // Uložení do stavu
+        setConfigData({ stageName, rewardValue });
+      } catch (error) {
+        console.error("Error fetching remote config:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchConfig();
+  }, []);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <h1>Firebase Remote Config</h1>
+      {configData ? (
+        <div>
+          <p>Stage Name: {configData.stageName}</p>
+          <p>Reward Value: {configData.rewardValue}</p>
+        </div>
+      ) : (
+        <p>No data found</p>
+      )}
     </div>
   );
-}
+};
 
 export default App;
